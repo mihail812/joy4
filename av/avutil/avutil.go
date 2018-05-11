@@ -288,6 +288,7 @@ func CopyPackets(dst av.PacketWriter, src av.PacketReader) (err error) {
 			return
 		}
 	}
+	err = nil
 	return
 }
 
