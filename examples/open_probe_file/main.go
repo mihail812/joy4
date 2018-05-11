@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com//mihail812//joy4/av"
-	"github.com//mihail812//joy4/av/avutil"
-	"github.com//mihail812//joy4/format"
+	"github.com/mihail812/joy4/av"
+	"github.com/mihail812/joy4/av/avutil"
+	"github.com/mihail812/joy4/format"
 )
 
 func init() {

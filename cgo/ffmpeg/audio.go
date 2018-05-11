@@ -16,9 +16,9 @@ import (
 	"runtime"
 	"fmt"
 	"time"
-	"github.com//mihail812//joy4/av"
-	"github.com//mihail812//joy4/av/avutil"
-	"github.com//mihail812//joy4/codec/aacparser"
+	"github.com/mihail812/joy4/av"
+	"github.com/mihail812/joy4/av/avutil"
+	"github.com/mihail812/joy4/codec/aacparser"
 )
 
 const debug = false

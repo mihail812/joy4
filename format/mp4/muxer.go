@@ -3,11 +3,11 @@ package mp4
 import (
 	"fmt"
 	"time"
-	"github.com//mihail812//joy4/av"
-	"github.com//mihail812//joy4/codec/aacparser"
-	"github.com//mihail812//joy4/codec/h264parser"
-	"github.com//mihail812//joy4/format/mp4/mp4io"
-	"github.com//mihail812//joy4/utils/bits/pio"
+	"github.com/mihail812/joy4/av"
+	"github.com/mihail812/joy4/codec/aacparser"
+	"github.com/mihail812/joy4/codec/h264parser"
+	"github.com/mihail812/joy4/format/mp4/mp4io"
+	"github.com/mihail812/joy4/utils/bits/pio"
 	"io"
 	"bufio"
 )

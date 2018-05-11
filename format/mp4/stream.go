@@ -1,8 +1,8 @@
 package mp4
 
 import (
-	"github.com//mihail812//joy4/av"
-	"github.com//mihail812//joy4/format/mp4/mp4io"
+	"github.com/mihail812/joy4/av"
+	"github.com/mihail812/joy4/format/mp4/mp4io"
 	"time"
 )
 
