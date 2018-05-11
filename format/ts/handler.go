@@ -2,8 +2,8 @@ package ts
 
 import (
 	"io"
-	"github.com/mihailr812/joy4/av"
-	"github.com/mihailr812/joy4/av/avutil"
+	"github.com//mihail812//joy4/av"
+	"github.com//mihail812//joy4/av/avutil"
 )
 
 func Handler(h *avutil.RegisterHandler) {

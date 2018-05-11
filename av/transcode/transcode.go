@@ -5,8 +5,8 @@ package transcode
 import (
 	"fmt"
 	"time"
-	"github.com/mihailr812/joy4/av"
-	"github.com/mihailr812/joy4/av/pktque"
+	"github.com//mihail812//joy4/av"
+	"github.com//mihail812//joy4/av/pktque"
 )
 
 var Debug bool
