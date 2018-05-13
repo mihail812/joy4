@@ -20,7 +20,11 @@ import (
 	"time"
 )
 
-var Debug bool
+var
+(
+	Debug bool
+	RtmpMaxChunkSize = 10*1024*1024
+)
 
 func ParseURL(uri string) (u *url.URL, err error) {
 	if u, err = url.Parse(uri); err != nil {
@@ -353,7 +357,7 @@ var CodecTypes = flv.CodecTypes
 
 func (self *Conn) writeBasicConf() (err error) {
 	// > SetChunkSize
-	if err = self.writeSetChunkSize(1024 * 1024 * 128); err != nil {
+	if err = self.writeSetChunkSize(RtmpMaxChunkSize); err != nil {
 		return
 	}
 	// > WindowAckSize
