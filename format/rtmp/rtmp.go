@@ -61,7 +61,7 @@ type Server struct {
 	HandlePublish func(*Conn)
 	HandlePlay    func(*Conn)
 	HandleConn    func(*Conn)
-	CreateConn    func(*net.Conn) *Conn
+	CreateConn    func(net.Conn) *Conn
 }
 
 func (self *Server) handleConn(conn *Conn) (err error) {
