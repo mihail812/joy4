@@ -8,11 +8,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/mihail812/joy4/utils/bits/pio"
 	"github.com/mihail812/joy4/av"
 	"github.com/mihail812/joy4/av/avutil"
 	"github.com/mihail812/joy4/format/flv"
 	"github.com/mihail812/joy4/format/flv/flvio"
+	"github.com/mihail812/joy4/utils/bits/pio"
 	"io"
 	"net"
 	"net/url"
@@ -20,10 +20,9 @@ import (
 	"time"
 )
 
-var
-(
-	Debug bool
-	RtmpMaxChunkSize = 10*1024*1024
+var (
+	Debug        bool
+	MaxChunkSize = 128 * 1024 * 1024
 )
 
 func ParseURL(uri string) (u *url.URL, err error) {
@@ -62,6 +61,7 @@ type Server struct {
 	HandlePublish func(*Conn)
 	HandlePlay    func(*Conn)
 	HandleConn    func(*Conn)
+	CreateConn    func(*net.Conn) *Conn
 }
 
 func (self *Server) handleConn(conn *Conn) (err error) {
@@ -116,7 +116,12 @@ func (self *Server) ListenAndServe() (err error) {
 			fmt.Println("rtmp: server: accepted")
 		}
 
-		conn := NewConn(netconn)
+		var conn *Conn
+		if self.CreateConn != nil {
+			conn = self.CreateConn(netconn)
+		} else {
+			conn = NewConn(netconn)
+		}
 		conn.isserver = true
 		go func() {
 			err := self.handleConn(conn)
@@ -142,7 +147,7 @@ type Conn struct {
 	URL             *url.URL
 	OnPlayOrPublish func(string, flvio.AMFMap) error
 
-	prober  *flv.Prober
+	Prober  *flv.Prober
 	streams []av.CodecData
 
 	txbytes uint64
@@ -206,7 +211,7 @@ func (self *txrxcount) Write(p []byte) (int, error) {
 
 func NewConn(netconn net.Conn) *Conn {
 	conn := &Conn{}
-	conn.prober = &flv.Prober{}
+	conn.Prober = &flv.Prober{}
 	conn.netconn = netconn
 	conn.readcsmap = make(map[uint32]*chunkStream)
 	conn.readMaxChunkSize = 128
@@ -357,7 +362,7 @@ var CodecTypes = flv.CodecTypes
 
 func (self *Conn) writeBasicConf() (err error) {
 	// > SetChunkSize
-	if err = self.writeSetChunkSize(RtmpMaxChunkSize); err != nil {
+	if err = self.writeSetChunkSize(MaxChunkSize); err != nil {
 		return
 	}
 	// > WindowAckSize
@@ -582,17 +587,17 @@ func (self *Conn) checkCreateStreamResult() (ok bool, avmsgsid uint32) {
 }
 
 func (self *Conn) probe() (err error) {
-	for !self.prober.Probed() {
+	for !self.Prober.Probed() {
 		var tag flvio.Tag
 		if tag, err = self.pollAVTag(); err != nil {
 			return
 		}
-		if err = self.prober.PushTag(tag, int32(self.timestamp)); err != nil {
+		if err = self.Prober.PushTag(tag, int32(self.timestamp)); err != nil {
 			return
 		}
 	}
 
-	self.streams = self.prober.Streams
+	self.streams = self.Prober.Streams
 	self.stage++
 	return
 }
@@ -779,8 +784,8 @@ func (self *Conn) ReadPacket() (pkt av.Packet, err error) {
 		return
 	}
 
-	if !self.prober.Empty() {
-		pkt = self.prober.PopPacket()
+	if !self.Prober.Empty() {
+		pkt = self.Prober.PopPacket()
 		return
 	}
 
@@ -791,7 +796,7 @@ func (self *Conn) ReadPacket() (pkt av.Packet, err error) {
 		}
 
 		var ok bool
-		if pkt, ok = self.prober.TagToPacket(tag, int32(self.timestamp)); ok {
+		if pkt, ok = self.Prober.TagToPacket(tag, int32(self.timestamp)); ok {
 			return
 		}
 	}
