@@ -86,7 +86,7 @@ func (self *Server) handleConn(conn *Conn) (err error) {
 	return
 }
 
-func (self *Server) ListenAndServe() (err error) {
+func (self *Server) Listen() (listener *net.TCPListener, err error){
 	addr := self.Addr
 	if addr == "" {
 		addr = ":1935"
@@ -94,18 +94,21 @@ func (self *Server) ListenAndServe() (err error) {
 	var tcpaddr *net.TCPAddr
 	if tcpaddr, err = net.ResolveTCPAddr("tcp", addr); err != nil {
 		err = fmt.Errorf("rtmp: ListenAndServe: %s", err)
-		return
+		return nil, err
 	}
 
-	var listener *net.TCPListener
 	if listener, err = net.ListenTCP("tcp", tcpaddr); err != nil {
-		return
+		return nil, err
 	}
 
 	if Debug {
 		fmt.Println("rtmp: server: listening on", addr)
 	}
 
+	return listener, nil
+}
+
+func (self *Server) Serve(listener *net.TCPListener) (err error){
 	for {
 		var netconn net.Conn
 		if netconn, err = listener.Accept(); err != nil {
@@ -129,6 +132,15 @@ func (self *Server) ListenAndServe() (err error) {
 				fmt.Println("rtmp: server: client closed err:", err)
 			}
 		}()
+	}
+}
+
+func (self *Server) ListenAndServe() (error) {
+	if listener, err := self.Listen(); err != nil{
+		return err
+	}else {
+		err = self.Serve(listener)
+		return err
 	}
 }
 
