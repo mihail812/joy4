@@ -13,6 +13,7 @@ import (
 	"github.com/mihail812/joy4/format/flv"
 	"github.com/mihail812/joy4/format/flv/flvio"
 	"github.com/mihail812/joy4/utils/bits/pio"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net"
 	"net/url"
@@ -203,6 +204,7 @@ type Conn struct {
 	avtag       flvio.Tag
 
 	eventtype uint16
+	TCUrl     string
 }
 
 type txrxcount struct {
@@ -629,7 +631,7 @@ func (self *Conn) writeConnect(path string) (err error) {
 		flvio.AMFMap{
 			"app":           path,
 			"flashVer":      "MAC 22,0,0,192",
-			"tcUrl":         getTcUrl(self.URL),
+			"tcUrl":         self.TCUrl,
 			"fpad":          false,
 			"capabilities":  15,
 			"audioCodecs":   4071,
@@ -827,10 +829,12 @@ func (self *Conn) prepare(stage int, flags int) (err error) {
 		switch self.stage {
 		case 0:
 			if self.isserver {
+				logrus.Debug(fmt.Sprintf("try to handshakeServer %s", self.URL))
 				if err = self.handshakeServer(); err != nil {
 					return
 				}
 			} else {
+				logrus.Debug(fmt.Sprintf("try to handshakeClient %s", self.URL))
 				if err = self.handshakeClient(); err != nil {
 					return
 				}
@@ -838,11 +842,13 @@ func (self *Conn) prepare(stage int, flags int) (err error) {
 
 		case stageHandshakeDone:
 			if self.isserver {
+				logrus.Debug(fmt.Sprintf("try to readConnect %s", self.URL))
 				if err = self.readConnect(); err != nil {
 					return
 				}
 			} else {
 				if flags == prepareReading {
+					logrus.Debug(fmt.Sprintf("try to connectPlay %s", self.URL))
 					if err = self.connectPlay(); err != nil {
 						return
 					}
@@ -1625,7 +1631,7 @@ func (self *Conn) handshakeServer() (err error) {
 	clitime := pio.U32BE(C1[0:4])
 	srvtime := clitime
 	srvver := uint32(0x0d0e0a0d)
-	cliver := pio.U32BE(C1[4:8])
+	cliver := 0//pio.U32BE(C1[4:8])
 
 	if cliver != 0 {
 		var ok bool
