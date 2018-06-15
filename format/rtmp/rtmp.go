@@ -64,7 +64,7 @@ type Server struct {
 	CreateConn    func(net.Conn) *Conn
 }
 
-func (self *Server) handleConn(conn *Conn) (err error) {
+func (self *Server) HandleConnection(conn *Conn) (err error) {
 	if self.HandleConn != nil {
 		self.HandleConn(conn)
 	} else {
@@ -110,9 +110,12 @@ func (self *Server) Listen() (listener *net.TCPListener, err error){
 
 func (self *Server) Serve(listener *net.TCPListener) (err error){
 	for {
-		conn := self.Accept(listener)
+		conn, err := self.Accept(listener)
+		if err != nil{
+			return err
+		}
 		go func() {
-			err := self.handleConn(conn)
+			err := self.HandleConnection(conn)
 			if Debug {
 				fmt.Println("rtmp: server: client closed err:", err)
 			}
@@ -121,6 +124,7 @@ func (self *Server) Serve(listener *net.TCPListener) (err error){
 }
 
 func (self *Server) Accept(listener *net.TCPListener) (conn *Conn, err error) {
+	var netconn net.Conn
 	if netconn, err = listener.Accept(); err != nil {
 		return nil, err
 	}
@@ -131,10 +135,6 @@ func (self *Server) Accept(listener *net.TCPListener) (conn *Conn, err error) {
 	}
 	conn.isserver = true
 	return conn, nil
-}
-
-func (self *Server) HandleConn(conn *Conn) error {
-	return self.handleConn(conn)
 }
 
 func (self *Server) ListenAndServe() (error) {
