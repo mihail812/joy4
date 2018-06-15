@@ -110,22 +110,7 @@ func (self *Server) Listen() (listener *net.TCPListener, err error){
 
 func (self *Server) Serve(listener *net.TCPListener) (err error){
 	for {
-		var netconn net.Conn
-		if netconn, err = listener.Accept(); err != nil {
-			return
-		}
-
-		if Debug {
-			fmt.Println("rtmp: server: accepted")
-		}
-
-		var conn *Conn
-		if self.CreateConn != nil {
-			conn = self.CreateConn(netconn)
-		} else {
-			conn = NewConn(netconn)
-		}
-		conn.isserver = true
+		conn := self.Accept(listener)
 		go func() {
 			err := self.handleConn(conn)
 			if Debug {
@@ -133,6 +118,23 @@ func (self *Server) Serve(listener *net.TCPListener) (err error){
 			}
 		}()
 	}
+}
+
+func (self *Server) Accept(listener *net.TCPListener) (conn *Conn, err error) {
+	if netconn, err = listener.Accept(); err != nil {
+		return nil, err
+	}
+	if self.CreateConn != nil {
+		conn = self.CreateConn(netconn)
+	} else {
+		conn = NewConn(netconn)
+	}
+	conn.isserver = true
+	return conn, nil
+}
+
+func (self *Server) HandleConn(conn *Conn) error {
+	return self.handleConn(conn)
 }
 
 func (self *Server) ListenAndServe() (error) {
