@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/go-errors/errors"
 	"github.com/mihail812/joy4/av"
 	"github.com/mihail812/joy4/av/avutil"
 	"github.com/mihail812/joy4/format/flv"
@@ -87,7 +88,7 @@ func (self *Server) HandleConnection(conn *Conn) (err error) {
 	return
 }
 
-func (self *Server) Listen() (listener *net.TCPListener, err error){
+func (self *Server) Listen() (listener *net.TCPListener, err error) {
 	addr := self.Addr
 	if addr == "" {
 		addr = ":1935"
@@ -109,10 +110,10 @@ func (self *Server) Listen() (listener *net.TCPListener, err error){
 	return listener, nil
 }
 
-func (self *Server) Serve(listener *net.TCPListener) (err error){
+func (self *Server) Serve(listener *net.TCPListener) (err error) {
 	for {
 		conn, err := self.Accept(listener)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		go func() {
@@ -138,10 +139,10 @@ func (self *Server) Accept(listener *net.TCPListener) (conn *Conn, err error) {
 	return conn, nil
 }
 
-func (self *Server) ListenAndServe() (error) {
-	if listener, err := self.Listen(); err != nil{
+func (self *Server) ListenAndServe() error {
+	if listener, err := self.Listen(); err != nil {
 		return err
-	}else {
+	} else {
 		err = self.Serve(listener)
 		return err
 	}
@@ -320,7 +321,7 @@ func (self *Conn) pollAVTag() (tag flvio.Tag, err error) {
 func (self *Conn) pollMsg() (err error) {
 	self.gotmsg = false
 	self.gotcommand = false
-	self.datamsgvals = nil
+	//self.datamsgvals = nil
 	self.avtag = flvio.Tag{}
 	for {
 		if err = self.readChunk(); err != nil {
@@ -879,6 +880,19 @@ func (self *Conn) Streams() (streams []av.CodecData, err error) {
 	}
 	streams = self.streams
 	return
+}
+
+func (self *Conn) Metadata() (map[string]interface{}, error) {
+	if len(self.datamsgvals) < 3 {
+		return nil, errors.New("bad_metadata")
+	}
+	if self.datamsgvals[0] != "@setDataFrame" {
+		return nil, errors.New("wrong_message")
+	}
+	if self.datamsgvals[1] != "onMetaData" {
+		return nil, errors.New("metadata_not_found")
+	}
+	return self.datamsgvals[2].(flvio.AMFMap), nil
 }
 
 func (self *Conn) WritePacket(pkt av.Packet) (err error) {
@@ -1631,7 +1645,7 @@ func (self *Conn) handshakeServer() (err error) {
 	clitime := pio.U32BE(C1[0:4])
 	srvtime := clitime
 	srvver := uint32(0x0d0e0a0d)
-	cliver := 0//pio.U32BE(C1[4:8])
+	cliver := 0 //pio.U32BE(C1[4:8])
 
 	if cliver != 0 {
 		var ok bool
