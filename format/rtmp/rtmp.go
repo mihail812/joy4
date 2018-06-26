@@ -25,6 +25,8 @@ import (
 var (
 	Debug        bool
 	MaxChunkSize = 128 * 1024 * 1024
+	ReadDeadlineTimeout = 20 * time.Second
+	WriteDeadlineTimeout = 20 * time.Second
 )
 
 func ParseURL(uri string) (u *url.URL, err error) {
@@ -884,13 +886,13 @@ func (self *Conn) Streams() (streams []av.CodecData, err error) {
 
 func (self *Conn) Metadata() (map[string]interface{}, error) {
 	if len(self.datamsgvals) < 3 {
-		return nil, errors.New("bad_metadata")
+		return nil, errors.New(fmt.Sprintf("bad_metadata: %+v", self.datamsgvals))
 	}
 	if self.datamsgvals[0] != "@setDataFrame" {
-		return nil, errors.New("wrong_message")
+		return nil, errors.New(fmt.Sprintf("wrong_message: %+v", self.datamsgvals))
 	}
 	if self.datamsgvals[1] != "onMetaData" {
-		return nil, errors.New("metadata_not_found")
+		return nil, errors.New(fmt.Sprintf("metadata_not_found: %+v", self.datamsgvals))
 	}
 	return self.datamsgvals[2].(flvio.AMFMap), nil
 }
@@ -1058,7 +1060,8 @@ func (self *Conn) writeAVTag(tag flvio.Tag, ts int32) (err error) {
 			return
 		}
 	}
-
+	self.netconn.SetWriteDeadline(time.Now().Add(WriteDeadlineTimeout))
+	defer self.netconn.SetWriteDeadline(time.Time{})
 	if _, err = self.bufw.Write(b[:n]); err != nil {
 		return
 	}
@@ -1142,9 +1145,12 @@ func (self *Conn) flushWrite() (err error) {
 func (self *Conn) readChunk() (err error) {
 	b := self.readbuf
 	n := 0
+	self.netconn.SetReadDeadline(time.Now().Add(ReadDeadlineTimeout))
+	defer self.netconn.SetReadDeadline(time.Time{})
 	if _, err = io.ReadFull(self.bufr, b[:1]); err != nil {
 		return
 	}
+
 	header := b[0]
 	n += 1
 
