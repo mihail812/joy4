@@ -15,7 +15,7 @@ import (
 	"io"
 )
 
-var MaxProbePacketCount = 20
+var MaxProbePacketCount = 2000
 
 func NewMetadataByStreams(streams []av.CodecData) (metadata flvio.AMFMap, err error) {
 	metadata = flvio.AMFMap{}
@@ -475,8 +475,6 @@ func (self *Demuxer) ReadPacket() (pkt av.Packet, err error) {
 			return
 		}
 	}
-
-	return
 }
 
 func Handler(h *avutil.RegisterHandler) {

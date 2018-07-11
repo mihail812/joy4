@@ -819,8 +819,6 @@ func (self *Conn) ReadPacket() (pkt av.Packet, err error) {
 			return
 		}
 	}
-
-	return
 }
 
 func (self *Conn) Prepare() (err error) {
