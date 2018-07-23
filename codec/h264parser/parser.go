@@ -11,8 +11,8 @@ import (
 
 const (
 	NALU_SEI = 6
-	NALU_PPS = 7
-	NALU_SPS = 8
+	NALU_SPS = 7
+	NALU_PPS = 8
 	NALU_AUD = 9
 )
 
@@ -212,6 +212,18 @@ const (
 	NALU_AVCC
 	NALU_ANNEXB
 )
+
+func ComposeAnnexBFrame(b []byte) []byte {
+	frame := make([]byte, len(b)+len(AUDBytes))
+	NALUs,_ := SplitNALUs(b)
+	n := 0
+	for _, NALU := range NALUs{
+		n+= copy(frame[n:], StartCodeBytes)
+		n+= copy(frame[n:], NALU)
+	}
+	//n+=copy(frame[n:], AUDBytes)
+	return frame[:n]
+}
 
 func SplitNALUs(b []byte) (nalus [][]byte, typ int) {
 	if len(b) < 4 {

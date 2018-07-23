@@ -1571,6 +1571,12 @@ func hsCreate2(p []byte, key []byte) {
 }
 
 func (self *Conn) handshakeClient() (err error) {
+	self.netconn.SetWriteDeadline(time.Now().Add(WriteDeadlineTimeout))
+	defer self.netconn.SetWriteDeadline(time.Time{})
+
+	self.netconn.SetReadDeadline(time.Now().Add(ReadDeadlineTimeout))
+	defer self.netconn.SetReadDeadline(time.Time{})
+
 	var random [(1 + 1536*2) * 2]byte
 
 	C0C1C2 := random[:1536*2+1]
@@ -1621,6 +1627,12 @@ func (self *Conn) handshakeClient() (err error) {
 }
 
 func (self *Conn) handshakeServer() (err error) {
+	self.netconn.SetWriteDeadline(time.Now().Add(WriteDeadlineTimeout))
+	defer self.netconn.SetWriteDeadline(time.Time{})
+
+	self.netconn.SetReadDeadline(time.Now().Add(ReadDeadlineTimeout))
+	defer self.netconn.SetReadDeadline(time.Time{})
+
 	var random [(1 + 1536*2) * 2]byte
 
 	C0C1C2 := random[:1536*2+1]
