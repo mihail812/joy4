@@ -24,7 +24,7 @@ import (
 
 var (
 	Debug        bool
-	MaxChunkSize = 128 * 1024 * 1024
+	MaxChunkSize = 10 * 1024 * 1024
 	ReadDeadlineTimeout = 20 * time.Second
 	WriteDeadlineTimeout = 20 * time.Second
 )
@@ -385,11 +385,11 @@ func (self *Conn) writeBasicConf() (err error) {
 		return
 	}
 	// > WindowAckSize
-	if err = self.writeWindowAckSize(5000000); err != nil {
+	if err = self.writeWindowAckSize(10000000); err != nil {
 		return
 	}
 	// > SetPeerBandwidth
-	if err = self.writeSetPeerBandwidth(5000000, 2); err != nil {
+	if err = self.writeSetPeerBandwidth(10000000, 2); err != nil {
 		return
 	}
 	return
@@ -979,6 +979,9 @@ func (self *Conn) writeAck(seqnum uint32) (err error) {
 	pio.PutU32BE(b[n:], seqnum)
 	n += 4
 	_, err = self.bufw.Write(b[:n])
+	if err = self.bufw.Flush(); err != nil {
+		return
+	}
 	return
 }
 
@@ -1353,7 +1356,7 @@ func (self *Conn) readChunk() (err error) {
 	}
 
 	self.ackn += uint32(n)
-	if self.readAckSize != 0 && self.ackn > self.readAckSize {
+	if self.readAckSize != 0 && self.ackn >= self.readAckSize {
 		if err = self.writeAck(self.ackn); err != nil {
 			return
 		}
@@ -1484,6 +1487,12 @@ func (self *Conn) handleMsg(timestamp uint32, msgsid uint32, msgtypeid uint8, ms
 		}
 		self.readMaxChunkSize = int(pio.U32BE(msgdata))
 		return
+
+	case msgtypeidWindowAckSize:
+		self.readAckSize = pio.U32BE(msgdata)
+		logrus.Info(fmt.Sprintf("RR WindowsAckSize: %d", self.readAckSize))
+		return
+
 	}
 
 	self.gotmsg = true
