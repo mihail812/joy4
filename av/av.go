@@ -191,6 +191,8 @@ type AudioCodecData interface {
 	SampleRate() int                              // audio sample rate
 	ChannelLayout() ChannelLayout                 // audio channel layout
 	PacketDuration([]byte) (time.Duration, error) // get audio compressed packet duration
+	Profile() string                 			  // audio codec profile
+
 }
 
 type PacketWriter interface {
