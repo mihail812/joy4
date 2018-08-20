@@ -1067,6 +1067,7 @@ func (self *Conn) writeAVTag(tag flvio.Tag, ts int32) (err error) {
 		return
 	}
 	_, err = self.bufw.Write(data)
+	self.bufw.Flush()
 	return
 }
 
