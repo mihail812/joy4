@@ -1554,7 +1554,7 @@ func hsParse1(p []byte, peerkey []byte, key []byte) (ok bool, digest []byte) {
 	var pos int
 	if pos = hsFindDigest(p, peerkey, 772); pos == -1 {
 		if pos = hsFindDigest(p, peerkey, 8); pos == -1 {
-			return
+			pos = hsCalcDigestPos(p, 8)
 		}
 	}
 	ok = true
@@ -1671,7 +1671,7 @@ func (self *Conn) handshakeServer() (err error) {
 	clitime := pio.U32BE(C1[0:4])
 	srvtime := clitime
 	srvver := uint32(0x0d0e0a0d)
-	cliver := 0 //pio.U32BE(C1[4:8])
+	cliver := pio.U32BE(C1[4:8])
 
 	if cliver != 0 {
 		var ok bool
