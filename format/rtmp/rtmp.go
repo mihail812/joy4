@@ -23,9 +23,9 @@ import (
 )
 
 var (
-	Debug        bool
-	MaxChunkSize = 10 * 1024 * 1024
-	ReadDeadlineTimeout = 20 * time.Second
+	Debug                bool
+	MaxChunkSize         = 10 * 1024 * 1024
+	ReadDeadlineTimeout  = 20 * time.Second
 	WriteDeadlineTimeout = 20 * time.Second
 )
 
@@ -1321,6 +1321,13 @@ func (self *Conn) readChunk() (err error) {
 				cs.timenow += timestamp
 			}
 			cs.Start()
+		} else if cs.hastimeext {
+			// extended timestamp is presented in chunk type 3
+			if _, err = io.ReadFull(self.bufr, b[:4]); err != nil {
+				return
+			}
+			n += 4
+			cs.timedelta = pio.U32BE(b)
 		}
 
 	default:
