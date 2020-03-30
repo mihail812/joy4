@@ -1,12 +1,12 @@
 package aacparser
 
 import (
-	"github.com/mihail812/joy4/utils/bits"
-	"github.com/mihail812/joy4/av"
-	"time"
-	"fmt"
 	"bytes"
+	"fmt"
+	"github.com/mihail812/joy4/av"
+	"github.com/mihail812/joy4/utils/bits"
 	"io"
+	"time"
 )
 
 // copied from libavcodec/mpeg4audio.h
@@ -61,6 +61,7 @@ type MPEG4AudioConfig struct {
 	ObjectType      uint
 	SampleRateIndex uint
 	ChannelConfig   uint
+	Profile_         string
 }
 
 var sampleRateTable = []int{
@@ -83,12 +84,12 @@ These are the channel configurations:
 var chanConfigTable = []av.ChannelLayout{
 	0,
 	av.CH_FRONT_CENTER,
-	av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT,
-	av.CH_FRONT_CENTER|av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT,
-	av.CH_FRONT_CENTER|av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT|av.CH_BACK_CENTER,
-	av.CH_FRONT_CENTER|av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT|av.CH_BACK_LEFT|av.CH_BACK_RIGHT,
-	av.CH_FRONT_CENTER|av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT|av.CH_BACK_LEFT|av.CH_BACK_RIGHT|av.CH_LOW_FREQ,
-	av.CH_FRONT_CENTER|av.CH_FRONT_LEFT|av.CH_FRONT_RIGHT|av.CH_SIDE_LEFT|av.CH_SIDE_RIGHT|av.CH_BACK_LEFT|av.CH_BACK_RIGHT|av.CH_LOW_FREQ,
+	av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT,
+	av.CH_FRONT_CENTER | av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT,
+	av.CH_FRONT_CENTER | av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT | av.CH_BACK_CENTER,
+	av.CH_FRONT_CENTER | av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT | av.CH_BACK_LEFT | av.CH_BACK_RIGHT,
+	av.CH_FRONT_CENTER | av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT | av.CH_BACK_LEFT | av.CH_BACK_RIGHT | av.CH_LOW_FREQ,
+	av.CH_FRONT_CENTER | av.CH_FRONT_LEFT | av.CH_FRONT_RIGHT | av.CH_SIDE_LEFT | av.CH_SIDE_RIGHT | av.CH_BACK_LEFT | av.CH_BACK_RIGHT | av.CH_LOW_FREQ,
 }
 
 func ParseADTSHeader(frame []byte) (config MPEG4AudioConfig, hdrlen int, framelen int, samples int, err error) {
@@ -266,7 +267,7 @@ func WriteMPEG4AudioConfig(w io.Writer, config MPEG4AudioConfig) (err error) {
 
 type CodecData struct {
 	ConfigBytes []byte
-	Config MPEG4AudioConfig
+	Config      MPEG4AudioConfig
 }
 
 func (self CodecData) Type() av.CodecType {
@@ -279,6 +280,10 @@ func (self CodecData) MPEG4AudioConfigBytes() []byte {
 
 func (self CodecData) ChannelLayout() av.ChannelLayout {
 	return self.Config.ChannelLayout
+}
+
+func (self CodecData) Profile() string {
+	return profileToString(self.Config.ObjectType)
 }
 
 func (self CodecData) SampleRate() int {
@@ -309,3 +314,93 @@ func NewCodecDataFromMPEG4AudioConfigBytes(config []byte) (self CodecData, err e
 	return
 }
 
+func profileToString(profile uint) string {
+	switch profile {
+	case AOT_AAC_MAIN:
+		return "MAIN"
+	case AOT_AAC_LC:
+		return "LC"
+	case AOT_AAC_SSR:
+		return "SSR"
+	case AOT_AAC_LTP:
+		return "LTP"
+	case AOT_SBR:
+		return "SBR"
+	case AOT_AAC_SCALABLE:
+		return "SCALABLE"
+	case AOT_TWINVQ:
+		return "TWINVQ"
+	case AOT_CELP:
+		return "CELP"
+	case AOT_HVXC:
+		return "HVXC"
+	case AOT_TTSI:
+		return "TTSI"
+	case AOT_MAINSYNTH:
+		return "MAINSYNTH"
+	case AOT_WAVESYNTH:
+		return "WAVESYNTH"
+	case AOT_MIDI:
+		return "MIDI"
+	case AOT_SAFX:
+		return "SAFX"
+	case AOT_ER_AAC_LC:
+		return "LC"
+	case AOT_ER_AAC_LTP:
+		return "LTP"
+	case AOT_ER_AAC_SCALABLE:
+		return "SCALABLE"
+	case AOT_ER_TWINVQ:
+		return "TWINVQ"
+	case AOT_ER_BSAC:
+		return "BSAC"
+	case AOT_ER_AAC_LD:
+		return "LD"
+	case AOT_ER_CELP:
+		return "CELP"
+	case AOT_ER_HVXC:
+		return "HVXC"
+	case AOT_ER_HILN:
+		return "HILN"
+	case AOT_ER_PARAM:
+		return "PARAM"
+	case AOT_SSC:
+		return "SSC"
+	case AOT_PS:
+		return "PS"
+	case AOT_SURROUND:
+		return "SURROUND"
+	case AOT_ESCAPE:
+		return "ESCAPE"
+	case AOT_L1:
+		return "L1"
+	case AOT_L2:
+		return "L2"
+	case AOT_L3:
+		return "L3"
+	case AOT_DST:
+		return "DST"
+	case AOT_ALS:
+		return "ALS"
+	case AOT_SLS:
+		return "SLS"
+	case AOT_SLS_NON_CORE:
+		return "CORE"
+	case AOT_ER_AAC_ELD:
+		return "ELD"
+	case AOT_SMR_SIMPLE:
+		return "SIMPLE"
+	case AOT_SMR_MAIN:
+		return "MAIN"
+	case AOT_USAC_NOSBR:
+		return "NOSBR"
+	case AOT_SAOC:
+		return "SAOC"
+	case AOT_LD_SURROUND:
+		return "SURROUND"
+	case AOT_USAC:
+		return "USAC"
+	default:
+		return "UNKNOWN"
+	}
+}

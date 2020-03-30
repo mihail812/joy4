@@ -3,7 +3,7 @@ package flv
 import (
 	"bufio"
 	"fmt"
-	"github.com/mihail812/joy4/utils/bits/pio"
+	"github.com/go-errors/errors"
 	"github.com/mihail812/joy4/av"
 	"github.com/mihail812/joy4/av/avutil"
 	"github.com/mihail812/joy4/codec"
@@ -11,10 +11,11 @@ import (
 	"github.com/mihail812/joy4/codec/fake"
 	"github.com/mihail812/joy4/codec/h264parser"
 	"github.com/mihail812/joy4/format/flv/flvio"
+	"github.com/mihail812/joy4/utils/bits/pio"
 	"io"
 )
 
-var MaxProbePacketCount = 20
+var MaxProbePacketCount = 2000
 
 func NewMetadataByStreams(streams []av.CodecData) (metadata flvio.AMFMap, err error) {
 	metadata = flvio.AMFMap{}
@@ -95,7 +96,6 @@ func (self *Prober) PushTag(tag flvio.Tag, timestamp int32) (err error) {
 				self.Streams = append(self.Streams, stream)
 				self.GotVideo = true
 			}
-
 		case flvio.AVC_NALU:
 			self.CacheTag(tag, timestamp)
 		}
@@ -449,6 +449,10 @@ func (self *Demuxer) Streams() (streams []av.CodecData, err error) {
 	return
 }
 
+func (self *Demuxer) Metadata() (map[string]interface{}, error) {
+	return nil, errors.New("method_not_implemented")
+}
+
 func (self *Demuxer) ReadPacket() (pkt av.Packet, err error) {
 	if err = self.prepare(); err != nil {
 		return
@@ -471,8 +475,6 @@ func (self *Demuxer) ReadPacket() (pkt av.Packet, err error) {
 			return
 		}
 	}
-
-	return
 }
 
 func Handler(h *avutil.RegisterHandler) {

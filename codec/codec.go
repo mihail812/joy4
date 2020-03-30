@@ -30,6 +30,10 @@ func (self PCMUCodecData) PacketDuration(data []byte) (time.Duration, error) {
 	return time.Duration(len(data)) * time.Second / time.Duration(8000), nil
 }
 
+func (self PCMUCodecData) Profile() string {
+	return "asd"
+}
+
 func NewPCMMulawCodecData() av.AudioCodecData {
 	return PCMUCodecData{
 		typ: av.PCM_MULAW,
